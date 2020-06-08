@@ -45,6 +45,10 @@ def create_event(shift_information):
     start_date_time = datetime.datetime(year, month, day, start_hour, start_min)
     end_date_time = datetime.datetime(year, month, day, end_hour, end_min)
 
+    # If the shift carries over into another day
+    if shift_information[1][0] == '0':
+        end_date_time += datetime.timedelta(days=1)
+
     event = {
         "summary": 'Work',
         "location": 'Carlow D/T MSA',

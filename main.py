@@ -35,7 +35,8 @@ login_button.click()
 driver.get('https://psschedule.reflexisinc.co.uk/wfmmcdirlprd/rws/ess/ess_notice_board.jsp?mm=ESS')
 
 # Grab the starting date and convert to datetime
-starting_date = driver.find_element_by_xpath('//*[@id="2020_23"]').text[-10:]
+starting_date = driver.find_element_by_name('weekstarts').text[-10:]
+#starting_date = driver.find_element_by_xpath('//*[@id="2020_23"]').text[-10:]
 current_date = datetime.date(int(starting_date[-4:]), int(starting_date[3:5]), int(starting_date[0:2]))
 
 shift_information = []
