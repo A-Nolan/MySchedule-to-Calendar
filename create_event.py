@@ -67,3 +67,17 @@ def create_event(shift_information):
     }
 
     return service.events().insert(calendarId=calendar_id, body=event, sendNotifications=True).execute()
+
+def is_events_this_week(start_date):
+    end_date = start_date + datetime.timedelta(days=7)
+
+    start_date = start_date.isoformat() + 'Z'
+    end_date = end_date.isoformat() + 'Z'
+
+    tests = service.events().list(calendarId=calendar_id, timeMin=start_date, timeMax=end_date).execute()
+    if not tests['items']:
+        return False
+    else:
+        return True
+    
+#check_events()

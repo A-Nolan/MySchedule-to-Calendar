@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options 
 import time
 import datetime
-from create_event import create_event
+from create_event import create_event, is_events_this_week
 
 def ask_if_correct(info):
     for item in info:
@@ -12,6 +12,19 @@ def ask_if_correct(info):
         print('\n')
 
     return input('Does this information look correct? (y/n) : ')
+
+def get_shifts(current_date):
+    shift_information = []
+
+    all_shifts = driver.find_elements_by_class_name('schdnormal')
+    for shift in all_shifts:
+        if shift.text == ' ':
+            current_date += datetime.timedelta(days=1)
+        else:
+            shift_information.append([shift.text[1:6], shift.text[-5:], current_date])
+            current_date += datetime.timedelta(days=1)
+
+    return shift_information
 
 options = Options()
 options.add_argument('headless')
@@ -36,21 +49,28 @@ driver.get('https://psschedule.reflexisinc.co.uk/wfmmcdirlprd/rws/ess/ess_notice
 
 # Grab the starting date and convert to datetime
 starting_date = driver.find_element_by_name('weekstarts').text[-10:]
-#starting_date = driver.find_element_by_xpath('//*[@id="2020_23"]').text[-10:]
-current_date = datetime.date(int(starting_date[-4:]), int(starting_date[3:5]), int(starting_date[0:2]))
+current_date = datetime.datetime(int(starting_date[-4:]), int(starting_date[3:5]), int(starting_date[0:2]))
 
-shift_information = []
-# Grab the shifts
-all_shifts = driver.find_elements_by_class_name('schdnormal')
-for shift in all_shifts:
-    if shift.text == ' ':
-        current_date += datetime.timedelta(days=1)
-    else:
-        shift_information.append([shift.text[1:6], shift.text[-5:], current_date])
-        current_date += datetime.timedelta(days=1)
+if not is_events_this_week(current_date):
+    shift_information = get_shifts(current_date)
 
-proceed = ask_if_correct(shift_information)
+    proceed = ask_if_correct(shift_information)
 
-if proceed == 'y':
-    for item in shift_information:
-        create_event(item)
+    if proceed == 'y':
+        for item in shift_information:
+            create_event(item)
+
+next_week = driver.find_element_by_id('rightImg')
+if 'visible' in next_week.get_attribute('style'):
+    next_week.click()
+
+    current_date += datetime.timedelta(days=7)
+
+    if not is_events_this_week(current_date):
+        shift_information = get_shifts(current_date)
+
+        proceed = ask_if_correct(shift_information)
+
+        if proceed == 'y':
+            for item in shift_information:
+                create_event(item)
